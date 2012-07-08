@@ -1,12 +1,16 @@
 {
-    "name": "application-name"
-  , "version": "0.0.1"
-  , "private": true
-  , "dependencies": {
-      "express": "2.5.11"
-    , "less": ">= 0.0.1"
-    , "ejs": ">= 0.0.1"
-    , "coffee-script": ">= 0.0.1"
-    , "connect-assets": ">= 0.0.1"
+  "name": "application-name",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node app"
+  },
+  "dependencies": {
+    "express": "3.0.0beta4",
+    "ejs": "*",
+    "less-middleware": "*",
+    "coffee-script": "*",
+    "connect-assets": "*",
+    "less": "*"
   }
 }

@@ -14,6 +14,7 @@ routes = require("./routes")
 assets = require("connect-assets")
 ejs = require("ejs")
 path = require("path")
+http = require('http')
 
 # Server creation
 app = module.exports = express.createServer()
@@ -51,13 +52,17 @@ assets.jsCompilers.ejs =
 
 # Configuration
 app.configure ->
+  app.set('port', process.env.PORT || 3000)
   app.set "views", __dirname + "/views"
   app.set "view engine", "ejs"
+  app.use(express.favicon())
+  app.use(express.logger('dev'))
   app.use express.bodyParser()
   app.use express.methodOverride()
-  app.use express.cookieParser()
-  app.use express.session(secret: "your secret here")
+  app.use(express.cookieParser('your secret here'))
+  app.use(express.session())
   app.use app.router
+  app.use(require('less-middleware')( src: publicDir))
   app.use express.static(publicDir)
   app.use assets(
     src: srcDir
@@ -65,17 +70,12 @@ app.configure ->
   )
 
 app.configure "development", ->
-  app.use express.errorHandler(
-    dumpExceptions: true
-    showStack: true
-  )
-
-app.configure "production", ->
-  app.use express.errorHandler()
+  app.use(express.errorHandler())
 
 # Routes
 app.get "/", routes.index
 
 # listen to the 3000 port
-app.listen 3000, ->
-  console.log "Express server listening on port %d in %s mode", app.address().port, app.settings.env
+http.createServer(app).listen(app.get('port'), () ->
+  console.log("Express server listening on port #{app.get('port')}")
+)
