@@ -1,10 +1,9 @@
 ### This file defines the express server.
 
-To server the content this server: 
-  * Uses ejs for templates.
+To server the content this server:
+  * Uses jade for templates.
   * Uses Less for css
   * connect-assets to compile coffescript and manage js and dependencies
-  * adds a compiler of ejs to jst for backbone templates
 
 ###
 
@@ -12,7 +11,7 @@ To server the content this server:
 express = require("express")
 routes = require("./routes")
 assets = require("connect-assets")
-ejs = require("ejs")
+jade = require("jade")
 path = require("path")
 http = require('http')
 
@@ -23,38 +22,26 @@ app = module.exports = express.createServer()
 publicDir = __dirname + "/public"
 srcDir = __dirname + "/assets"
 
-#### Add a ejs to jst compiler to connect-assets
-
-# First we define a new compile method since the one in ejs does not work
-# in the client side
-ejsCompile = (filename, source)->
-  input = JSON.stringify(source)
-  str = [
-    "function(locals){",
-    "var __stack = { lineno: 1, input: #{input}, filename: '#{filename}' };",
-    ejs.parse(source),
-    "}"
-  ].join("\n")
-  return str
-
-# Now we attach the ejs coipler to connect-assets
-assets.jsCompilers.ejs =
-  match: /\.jst.ejs$/
+# Now we attach the jade coipler to connect-assets
+assets.jsCompilers.jade =
+  match: /\.jst.jade$/
   compileSync: (sourcePath, source) ->
-    fileName = path.basename(sourcePath, ".jst.ejs")
+    fileName = path.basename(sourcePath, ".jst.jade")
     folderName = (path.dirname(sourcePath)).replace(srcDir + "/templates", "")
     jstPath = (if folderName then "#{folderName}/#{fileName}" else fileName)
-    str = ["(function() {",
-      "this.JST || (this.JST = {});",
-      "this.JST['" + jstPath + "'] = " + (ejsCompile(jstPath, source)),
+    return [
+      "(function() {",
+      "  this.JST || (this.JST = {});",
+      "  this.JST['#{jstPath}'] = #{jade.compile source, client: true}",
       "}).call(this);"
     ].join("\n")
+
 
 # Configuration
 app.configure ->
   app.set('port', process.env.PORT || 3000)
   app.set "views", __dirname + "/views"
-  app.set "view engine", "ejs"
+  app.set "view engine", "jade"
   app.use(express.favicon())
   app.use(express.logger('dev'))
   app.use express.bodyParser()
